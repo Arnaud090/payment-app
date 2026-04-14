@@ -8,13 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body { font-family: system-ui, sans-serif; }
-        .product-card { transition: all 0.2s; }
     </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen">
 
     <nav class="bg-black p-5 sticky top-0 border-b border-white/10">
-        <div class="max-w-6xl mx-auto flex justify-between">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
             <h1 class="text-3xl font-bold text-emerald-400">QuickQR</h1>
         </div>
     </nav>
@@ -26,40 +25,85 @@
         <div class="grid grid-cols-2 gap-4" id="products"></div>
     </div>
 
-    <!-- Floating Buttons -->
+    <!-- Floating Cart Button -->
     <button onclick="showCart()" 
             class="fixed bottom-6 right-6 bg-emerald-500 text-black font-bold px-8 py-4 rounded-3xl shadow-2xl flex items-center gap-3 z-50">
         <i class="fa-solid fa-cart-shopping"></i>
         Cart (<span id="cart-count">0</span>)
     </button>
 
-    <button onclick="startScanner()" 
-            class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white text-black font-bold px-10 py-5 rounded-3xl shadow-2xl flex items-center gap-3 z-50">
-        <i class="fa-solid fa-qrcode"></i>
-        SCAN QR BILL
-    </button>
-
     <!-- Cart Modal -->
-    <div id="cart-modal" class="hidden fixed inset-0 bg-black/80 flex items-end">
-        <div class="bg-zinc-900 w-full rounded-t-3xl p-6">
+    <div id="cart-modal" class="hidden fixed inset-0 bg-black/80 flex items-end z-50">
+        <div class="bg-zinc-900 w-full rounded-t-3xl p-6 max-h-[85vh] overflow-auto">
             <h3 class="text-2xl font-bold mb-4">Your Cart</h3>
-            <div id="cart-items"></div>
-            <div class="mt-6 text-2xl font-bold text-emerald-400" id="total">Total: RWF 0</div>
+            <div id="cart-items" class="space-y-4"></div>
+            
+            <div class="mt-8 text-2xl font-bold text-emerald-400" id="total">Total: RWF 0</div>
+            
             <button onclick="generateQR()" 
-                    class="mt-8 w-full bg-emerald-500 text-black py-5 rounded-3xl font-bold">
-                GENERATE QR CODE
+                    class="mt-8 w-full bg-emerald-500 text-black py-5 rounded-3xl font-bold text-lg">
+                GENERATE QR CODE FOR PAYMENT
             </button>
             <button onclick="hideCart()" class="mt-3 w-full py-4 text-zinc-400">Close</button>
         </div>
     </div>
 
     <!-- QR Modal -->
-    <div id="qr-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
-        <div class="bg-white text-black p-8 rounded-3xl max-w-sm w-full mx-4">
-            <h3 class="text-xl font-bold text-center mb-6">Scan this QR Code</h3>
-            <div id="qrcode" class="mx-auto bg-white p-6 rounded-2xl shadow"></div>
-            <p class="text-center text-sm text-zinc-600 mt-6">Open camera on your phone and scan this QR to see the bill and pay</p>
+    <div id="qr-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[100]">
+        <div class="bg-white text-black p-8 rounded-3xl max-w-sm w-full mx-4 text-center">
+            <h3 class="text-xl font-bold mb-6">Scan this QR Code</h3>
+            <div id="qrcode" class="mx-auto"></div>
+            <p class="text-sm text-zinc-600 mt-6">Customer opens camera → scans → sees full bill</p>
             <button onclick="hideQR()" class="mt-8 w-full py-4 border border-black rounded-3xl">Close</button>
+        </div>
+    </div>
+
+    <!-- BILL SCREEN (opens when QR is scanned) -->
+    <div id="bill-screen" class="hidden fixed inset-0 bg-zinc-950 z-[200] overflow-auto">
+        <div class="max-w-md mx-auto p-6">
+            <div class="bg-emerald-600 text-black p-6 rounded-3xl text-center mb-8">
+                <h2 class="text-2xl font-bold">INVOICE</h2>
+                <p id="bill-id" class="font-mono text-sm mt-1"></p>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-4">Items Purchased</h3>
+            <div id="bill-items" class="space-y-4 mb-8"></div>
+
+            <div class="border-t border-white/20 pt-6 space-y-3">
+                <div class="flex justify-between text-lg">
+                    <span class="text-zinc-400">Subtotal</span>
+                    <span id="subtotal"></span>
+                </div>
+                <div class="flex justify-between text-lg">
+                    <span class="text-zinc-400">Service Fee (1%)</span>
+                    <span id="fee"></span>
+                </div>
+                <div class="flex justify-between text-3xl font-bold border-t border-white/20 pt-6">
+                    <span>TOTAL</span>
+                    <span id="grand-total" class="text-emerald-400"></span>
+                </div>
+            </div>
+
+            <div class="mt-10">
+                <p class="text-emerald-400 font-medium mb-4">Choose Payment Method</p>
+                <div class="grid grid-cols-3 gap-4">
+                    <button onclick="payWith('MTN MoMo')" class="bg-zinc-900 hover:bg-emerald-500 hover:text-black p-6 rounded-3xl">
+                        <i class="fa-solid fa-mobile-screen-button text-3xl mb-2"></i>
+                        <p class="text-sm">MTN MoMo</p>
+                    </button>
+                    <button onclick="payWith('Airtel Money')" class="bg-zinc-900 hover:bg-emerald-500 hover:text-black p-6 rounded-3xl">
+                        <i class="fa-solid fa-mobile-screen-button text-3xl mb-2"></i>
+                        <p class="text-sm">Airtel Money</p>
+                    </button>
+                    <button onclick="payWith('Card')" class="bg-zinc-900 hover:bg-emerald-500 hover:text-black p-6 rounded-3xl">
+                        <i class="fa-solid fa-credit-card text-3xl mb-2"></i>
+                        <p class="text-sm">Card</p>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="closeBill()" 
+                    class="mt-10 w-full py-4 text-zinc-400">Close Bill</button>
         </div>
     </div>
 
@@ -69,21 +113,23 @@
             {id:1, name:"Wireless Earbuds Pro", price:45000, emoji:"🎧"},
             {id:2, name:"Kigali Hoodie", price:28000, emoji:"👕"},
             {id:3, name:"Smart Watch Ultra", price:125000, emoji:"⌚"},
-            {id:4, name:"Fresh Avocados", price:8000, emoji:"🥑"},
+            {id:4, name:"Fresh Avocados (5)", price:8000, emoji:"🥑"},
             {id:5, name:"Leather Wallet", price:22000, emoji:"👛"}
         ];
+
+        const BASE_URL = "https://payment-app-xszT.vercel.app";   // ← Change if your link changes
 
         function renderProducts() {
             const container = document.getElementById('products');
             container.innerHTML = '';
-            products.forEach(product => {
+            products.forEach(p => {
                 const div = document.createElement('div');
-                div.className = "bg-zinc-900 rounded-3xl p-5 product-card";
+                div.className = "bg-zinc-900 rounded-3xl p-5";
                 div.innerHTML = `
-                    <div class="text-6xl mb-4">${product.emoji}</div>
-                    <div class="font-medium">${product.name}</div>
-                    <div class="text-emerald-400 text-3xl font-bold">RWF ${product.price.toLocaleString()}</div>
-                    <button onclick="addToCart(${product.id}); event.stopImmediatePropagation()" 
+                    <div class="text-6xl mb-4">${p.emoji}</div>
+                    <div class="font-medium">${p.name}</div>
+                    <div class="text-emerald-400 text-3xl font-bold mt-1">RWF ${p.price.toLocaleString()}</div>
+                    <button onclick="addToCart(${p.id}); event.stopImmediatePropagation()" 
                             class="mt-6 w-full bg-emerald-500 text-black py-3 rounded-2xl font-medium">ADD TO CART</button>
                 `;
                 container.appendChild(div);
@@ -97,22 +143,19 @@
         }
 
         function showCart() {
-            if (cart.length === 0) {
-                alert("Your cart is empty");
-                return;
-            }
-
+            if (cart.length === 0) return alert("Cart is empty");
+            
             let html = '';
             let total = 0;
             cart.forEach(item => {
                 total += item.price;
                 html += `
-                    <div class="flex justify-between items-center bg-zinc-800 p-4 rounded-2xl mb-3">
+                    <div class="flex justify-between bg-zinc-800 p-4 rounded-2xl">
                         <span>${item.emoji} ${item.name}</span>
                         <span class="font-bold">RWF ${item.price.toLocaleString()}</span>
                     </div>`;
             });
-
+            
             document.getElementById('cart-items').innerHTML = html;
             document.getElementById('total').textContent = `Total: RWF ${total.toLocaleString()}`;
             document.getElementById('cart-modal').classList.remove('hidden');
@@ -124,51 +167,75 @@
 
         function generateQR() {
             hideCart();
-
+            
             const total = cart.reduce((sum, item) => sum + item.price, 0);
-            const orderData = JSON.stringify({
-                orderId: "QR" + Date.now(),
-                total: total,
-                items: cart.map(item => item.name)
-            });
-
+            const orderId = "Q" + Date.now();
+            
+            // Create a shareable link that opens the bill
+            const billLink = `${BASE_URL}/bill.html?orderId=${orderId}&total=${total}&items=${encodeURIComponent(JSON.stringify(cart))}`;
+            
             const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = `<p class="text-center text-zinc-400">Generating QR...</p>`;
-
-            // Use a reliable public QR code API instead of library
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(orderData)}`;
+            qrContainer.innerHTML = '';
+            
+            // Use reliable QR API
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(billLink)}`;
             
             const img = document.createElement('img');
             img.src = qrUrl;
-            img.style.width = '280px';
-            img.style.height = '280px';
-            img.style.display = 'block';
-            img.style.margin = '0 auto';
-
-            img.onload = () => {
-                qrContainer.innerHTML = '';
-                qrContainer.appendChild(img);
-            };
-
-            img.onerror = () => {
-                qrContainer.innerHTML = `<p class="text-red-500 text-center">Failed to generate QR. Please try again.</p>`;
-            };
+            img.className = "mx-auto rounded-2xl";
+            qrContainer.appendChild(img);
 
             document.getElementById('qr-modal').classList.remove('hidden');
         }
 
         function hideQR() {
             document.getElementById('qr-modal').classList.add('hidden');
+        }
+
+        // Simulate bill screen (for demo - in real app this would be a separate file)
+        // For now we show it directly when QR is scanned (we can improve later)
+        function showDemoBill() {
+            const billScreen = document.getElementById('bill-screen');
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            const fee = Math.round(total * 0.01);
+
+            document.getElementById('bill-id').textContent = "INV-" + Date.now().toString().slice(-6);
+            
+            let itemsHTML = '';
+            cart.forEach(item => {
+                itemsHTML += `
+                    <div class="flex justify-between py-3 border-b border-white/10">
+                        <span>${item.emoji} ${item.name}</span>
+                        <span>RWF ${item.price.toLocaleString()}</span>
+                    </div>`;
+            });
+            document.getElementById('bill-items').innerHTML = itemsHTML;
+            
+            document.getElementById('subtotal').textContent = `RWF ${total.toLocaleString()}`;
+            document.getElementById('fee').textContent = `RWF ${fee.toLocaleString()}`;
+            document.getElementById('grand-total').textContent = `RWF ${(total + fee).toLocaleString()}`;
+
+            billScreen.classList.remove('hidden');
+        }
+
+        function closeBill() {
+            document.getElementById('bill-screen').classList.add('hidden');
             cart = [];
             document.getElementById('cart-count').textContent = '0';
         }
 
-        function startScanner() {
-            alert("📱 Point your phone's camera at the QR code shown on the seller's screen.");
+        function payWith(method) {
+            alert(`✅ Payment successful via ${method}!\n\nThank you for shopping in Kigali 🎉`);
+            closeBill();
         }
 
         // Initialize
         renderProducts();
+        
+        // For testing: If someone opens the link with ?bill=true, show bill screen (demo)
+        if (window.location.search.includes('bill')) {
+            setTimeout(() => showDemoBill(), 800);
+        }
     </script>
 </body>
 </html>
