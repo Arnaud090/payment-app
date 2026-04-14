@@ -2,883 +2,173 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickQR • Buy • Sell • Scan & Pay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuickQR • Kigali</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
-        
-        :root {
-            --primary: #00ff88;
-        }
-        
-        * {
-            transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 150ms;
-        }
-        
-        .card-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 25px 50px -12px rgb(0 255 136 / 0.15);
-        }
-        
-        .qr-container {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.85; }
-        }
-        
-        .scan-frame {
-            animation: scan 2s linear infinite;
-        }
+        body { font-family: system-ui, sans-serif; }
+        .product-card { transition: all 0.3s; }
+        .product-card:active { transform: scale(0.97); }
     </style>
 </head>
-<body class="bg-zinc-950 text-white font-sans">
-    <div id="payment-app" class="hidden fixed inset-0 z-[13000] bg-zinc-950 text-white overflow-auto">
-        <div class="min-h-full bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_42%),linear-gradient(180deg,#111827_0%,#09090b_100%)] px-6 py-8">
-            <div class="max-w-md mx-auto">
-                <div class="flex items-center justify-between mb-8">
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.25em] text-emerald-300">QuickQR Pay</p>
-                        <h2 class="text-4xl font-semibold tracking-tight mt-2">Choose how to pay</h2>
-                    </div>
-                    <button onclick="closePaymentApp()" class="w-11 h-11 rounded-2xl bg-white/10 text-2xl">×</button>
-                </div>
+<body class="bg-zinc-950 text-white min-h-screen">
 
-                <div class="rounded-[2rem] bg-white text-black p-7 shadow-2xl">
-                    <p class="text-xs uppercase tracking-[0.2em] text-zinc-500">Receiver</p>
-                    <p id="payment-app-receiver" class="mt-2 text-2xl font-semibold">XX market</p>
-                    <p class="mt-6 text-xs uppercase tracking-[0.2em] text-zinc-500">Amount To Pay</p>
-                    <p id="payment-app-amount" class="mt-2 text-5xl font-bold text-emerald-600">RWF 0</p>
-                    <p id="payment-app-invoice" class="mt-4 text-sm text-zinc-500">Invoice #</p>
-                </div>
-
-                <div class="mt-8">
-                    <p class="text-emerald-300 font-medium mb-4">Select a payment method</p>
-                    <div class="grid grid-cols-1 gap-4">
-                        <button onclick="payWith('momo')" class="rounded-[2rem] bg-zinc-900 border border-white/10 px-6 py-5 flex items-center justify-between hover:border-emerald-400/50 hover:bg-zinc-800">
-                            <span class="flex items-center gap-4">
-                                <i class="fa-solid fa-mobile-screen-button text-3xl text-emerald-400"></i>
-                                <span class="text-left">
-                                    <span class="block text-lg font-semibold">MTN MoMo</span>
-                                    <span class="block text-sm text-zinc-400">Pay with mobile money</span>
-                                </span>
-                            </span>
-                            <i class="fa-solid fa-chevron-right text-zinc-500"></i>
-                        </button>
-                        <button onclick="payWith('airtel')" class="rounded-[2rem] bg-zinc-900 border border-white/10 px-6 py-5 flex items-center justify-between hover:border-emerald-400/50 hover:bg-zinc-800">
-                            <span class="flex items-center gap-4">
-                                <i class="fa-solid fa-mobile-screen-button text-3xl text-emerald-400"></i>
-                                <span class="text-left">
-                                    <span class="block text-lg font-semibold">Airtel Money</span>
-                                    <span class="block text-sm text-zinc-400">Pay with Airtel wallet</span>
-                                </span>
-                            </span>
-                            <i class="fa-solid fa-chevron-right text-zinc-500"></i>
-                        </button>
-                        <button onclick="payWith('card')" class="rounded-[2rem] bg-zinc-900 border border-white/10 px-6 py-5 flex items-center justify-between hover:border-emerald-400/50 hover:bg-zinc-800">
-                            <span class="flex items-center gap-4">
-                                <i class="fa-solid fa-credit-card text-3xl text-emerald-400"></i>
-                                <span class="text-left">
-                                    <span class="block text-lg font-semibold">Card / Bank</span>
-                                    <span class="block text-sm text-zinc-400">Visa, Mastercard, bank transfer</span>
-                                </span>
-                            </span>
-                            <i class="fa-solid fa-chevron-right text-zinc-500"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- NAVBAR -->
-    <nav class="bg-black border-b border-white/10 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center text-2xl">📱</div>
-                <h1 class="text-3xl font-semibold tracking-tighter" style="font-family: 'Space Grotesk', sans-serif;">
-                    QuickQR
-                </h1>
-            </div>
-            
-            <div class="flex items-center gap-8 text-sm font-medium">
-                <button onclick="switchMode('buyer')" id="buyer-tab"
-                        class="px-6 py-2 rounded-3xl flex items-center gap-2 hover:bg-white/10 active-mode">
-                    <i class="fa-solid fa-cart-shopping"></i>
-                    <span>BUY</span>
-                </button>
-                <button onclick="switchMode('seller')" id="seller-tab"
-                        class="px-6 py-2 rounded-3xl flex items-center gap-2 hover:bg-white/10">
-                    <i class="fa-solid fa-store"></i>
-                    <span>SELL</span>
-                </button>
-                
-                <div class="flex items-center gap-2 bg-zinc-900 rounded-3xl px-4 py-1 cursor-pointer" onclick="toggleCart()">
-                    <i class="fa-solid fa-shopping-cart"></i>
-                    <span id="cart-count" class="bg-emerald-500 text-black text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
-                    <span class="font-medium">Cart</span>
-                </div>
-                
-                <div class="w-9 h-9 bg-zinc-800 rounded-2xl flex items-center justify-center text-xl cursor-pointer" onclick="toggleProfile()">
-                    👤
-                </div>
+    <!-- Navbar -->
+    <nav class="bg-black p-5 sticky top-0 z-50 border-b border-white/10">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-emerald-400">QuickQR</h1>
+            <div class="flex gap-3">
+                <button onclick="switchTab(0)" id="buy-tab" 
+                        class="px-6 py-2 rounded-3xl font-medium bg-emerald-500 text-black">BUY</button>
+                <button onclick="switchTab(1)" id="sell-tab" 
+                        class="px-6 py-2 rounded-3xl font-medium">SELL</button>
             </div>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-6 py-8">
-        <!-- BUYER MODE -->
-        <div id="buyer-mode">
-            <div class="flex justify-between items-end mb-8">
-                <div>
-                    <h2 class="text-5xl font-semibold tracking-tighter">Find what you need in Kigali</h2>
-                    <p class="text-zinc-400 mt-2">Scan, pay, done. Fast &amp; secure with QR.</p>
-                </div>
-                <div class="flex gap-3">
-                    <div onclick="searchProducts()" class="bg-zinc-900 hover:bg-zinc-800 px-5 h-12 rounded-3xl flex items-center gap-3 cursor-pointer">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input id="search-input" type="text" placeholder="Search electronics, clothes..." 
-                               class="bg-transparent outline-none w-72 text-sm">
-                    </div>
-                </div>
-            </div>
+    <!-- BUY MODE -->
+    <div id="buy-mode" class="p-4 max-w-6xl mx-auto">
+        <h2 class="text-4xl font-bold mb-2">Find what you need in Kigali</h2>
+        <p class="text-zinc-400 mb-8">Add items • Generate QR • Customer scans & pays</p>
 
-            <!-- PRODUCTS GRID -->
-            <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                <!-- Populated by JS -->
-            </div>
-        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4" id="products"></div>
 
-        <!-- SELLER MODE -->
-        <div id="seller-mode" class="hidden">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-5xl font-semibold tracking-tighter">Your Store</h2>
-                <button onclick="showAddProductModal()" 
-                        class="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold px-8 py-4 rounded-3xl flex items-center gap-3">
-                    <i class="fa-solid fa-plus"></i>
-                    ADD NEW PRODUCT
-                </button>
+        <!-- Floating Cart Button -->
+        <button onclick="showCart()" 
+                class="fixed bottom-6 right-6 bg-emerald-500 text-black font-bold px-8 py-4 rounded-3xl shadow-2xl flex items-center gap-3 z-50">
+            <i class="fa-solid fa-cart-shopping"></i>
+            Cart (<span id="cart-count">0</span>)
+        </button>
+
+        <!-- Big Floating Scan Button (Very Important for Phone) -->
+        <button onclick="startScanner()" 
+                class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white text-black font-bold px-9 py-5 rounded-3xl shadow-2xl flex items-center gap-3 z-50 text-base">
+            <i class="fa-solid fa-qrcode text-2xl"></i>
+            SCAN QR BILL
+        </button>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="hidden fixed inset-0 bg-black/90 flex items-end z-[100]">
+        <div class="bg-zinc-900 w-full rounded-t-3xl p-6 max-h-[85vh] overflow-auto">
+            <h3 class="text-2xl font-bold mb-6">Your Cart</h3>
+            <div id="cart-items" class="space-y-4"></div>
+            
+            <div class="mt-8 pt-6 border-t border-white/10">
+                <div class="flex justify-between text-2xl font-semibold">
+                    <span>Total</span>
+                    <span id="cart-total" class="text-emerald-400"></span>
+                </div>
             </div>
             
-            <div id="seller-products" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Populated by JS -->
-            </div>
+            <button onclick="generateQR()" 
+                    class="mt-8 w-full bg-emerald-500 text-black py-6 rounded-3xl font-bold text-lg">
+                GENERATE QR CODE
+            </button>
+            <button onclick="hideCart()" class="mt-3 w-full py-4 text-zinc-400">Close</button>
         </div>
+    </div>
 
-        <!-- CART MODAL -->
-        <div onclick="if(event.target.id === 'cart-modal') hideCart()" 
-             id="cart-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center">
-            <div onclick="event.stopImmediatePropagation()" 
-                 class="bg-zinc-900 w-full max-w-2xl mx-4 md:mx-0 rounded-3xl overflow-hidden">
-                <div class="px-8 py-6 border-b border-white/10 flex justify-between items-center">
-                    <h3 class="text-2xl font-semibold">Your Cart</h3>
-                    <button onclick="hideCart()" class="text-3xl">×</button>
-                </div>
-                
-                <div id="cart-items" class="max-h-[420px] overflow-auto p-8 space-y-6">
-                    <!-- Populated by JS -->
-                </div>
-                
-                <div class="p-8 border-t border-white/10">
-                    <div class="flex justify-between text-xl mb-6">
-                        <span class="text-zinc-400">Total</span>
-                        <span id="cart-total" class="font-semibold">RWF 0</span>
-                    </div>
-                    
-                    <button onclick="checkout()" 
-                            class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xl py-6 rounded-3xl flex items-center justify-center gap-3">
-                        <i class="fa-solid fa-qrcode"></i>
-                        GENERATE QR BILL &amp; PAY
-                    </button>
-                    <p class="text-center text-xs text-zinc-500 mt-4">Customer will scan this QR to view bill &amp; complete payment</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- QR MODAL (after checkout) -->
-        <div onclick="if(event.target.id === 'qr-modal') hideQRModal()" 
-             id="qr-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-xl z-[9999] flex items-center justify-center">
-            <div class="bg-white text-black max-w-md w-full mx-4 rounded-3xl p-8">
-                <div class="text-center mb-8">
-                    <div class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 text-sm font-medium px-4 h-8 rounded-3xl mb-4">
-                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                        PAYMENT READY
-                    </div>
-                    <h3 class="text-3xl font-semibold">Scan this QR code</h3>
-                    <p class="text-zinc-600 mt-2">Customer opens camera, scans fast, then pays XX market instantly.</p>
-                </div>
-                
-                <div id="qr-code-container" class="bg-white p-6 rounded-3xl mx-auto w-fit shadow-2xl qr-container"></div>
-                
-                <div class="mt-6 rounded-3xl bg-zinc-100 p-5 text-left">
-                    <p class="text-xs uppercase tracking-[0.2em] text-zinc-500">Receiver</p>
-                    <p id="qr-receiver" class="mt-1 text-xl font-semibold">XX market</p>
-                    <p class="mt-4 text-xs uppercase tracking-[0.2em] text-zinc-500">Amount To Pay</p>
-                    <p id="qr-pay-amount" class="mt-1 text-3xl font-bold text-emerald-600">RWF 0</p>
-                </div>
-                
-                <div class="mt-8 grid grid-cols-3 gap-4 text-center text-xs">
-                    <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-mobile-screen-button text-3xl text-emerald-500 mb-1"></i>
-                        MTN MoMo
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-mobile-screen-button text-3xl text-emerald-500 mb-1"></i>
-                        Airtel Money
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <i class="fa-solid fa-credit-card text-3xl text-emerald-500 mb-1"></i>
-                        Card / Bank
-                    </div>
-                </div>
-                
-                <button onclick="hideQRModal()" 
-                        class="mt-8 w-full py-4 text-sm font-medium border border-black rounded-3xl">CLOSE &amp; CONTINUE SELLING</button>
-            </div>
-        </div>
-
-        <!-- QR SCANNER MODAL -->
-        <div onclick="if(event.target.id === 'scanner-modal') hideScanner()" 
-             id="scanner-modal" class="hidden fixed inset-0 bg-black/90 z-[10000] flex items-center justify-center">
-            <div class="w-full max-w-lg mx-4">
-                <div class="flex justify-between text-white mb-4 px-2">
-                    <h3 class="text-2xl font-semibold">Scan QR Bill</h3>
-                    <button onclick="hideScanner()" class="text-4xl leading-none">×</button>
-                </div>
-                
-                <div id="reader" class="bg-black aspect-square rounded-3xl overflow-hidden relative border-4 border-emerald-500"></div>
-                
-                <div class="text-center text-white/70 mt-4 text-sm">
-                    Point your camera at the seller's QR code
-                    <div class="scan-frame absolute top-1/2 left-1/2 w-64 h-1 bg-emerald-400/60 -translate-x-1/2 -translate-y-1/2"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BILL VIEW (after scanning) -->
-        <div onclick="if(event.target.id === 'bill-modal') hideBill()" 
-             id="bill-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-xl z-[11000] flex items-center justify-center">
-            <div class="bg-zinc-900 max-w-lg w-full mx-4 rounded-3xl overflow-hidden">
-                <div class="px-8 py-6 bg-emerald-500 text-black flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="text-3xl">📄</span>
-                        <div>
-                            <p class="font-mono text-sm">INVOICE #<span id="bill-id"></span></p>
-                            <p class="text-2xl font-semibold">Your Bill</p>
-                            <p id="bill-receiver" class="text-sm font-medium text-black/70">Pay to XX market</p>
-                        </div>
-                    </div>
-                    <button onclick="hideBill()" class="text-4xl">×</button>
-                </div>
-                
-                <div class="p-8">
-                    <div class="rounded-3xl bg-zinc-800 p-6 mb-8">
-                        <p class="text-sm uppercase tracking-[0.2em] text-zinc-400">Processed Payment</p>
-                        <p class="mt-3 text-zinc-300">Receiver</p>
-                        <p id="bill-amount-receiver" class="text-2xl font-semibold">XX market</p>
-                        <div class="flex justify-between text-3xl font-semibold border-t border-white/10 pt-6">
-                            <span>AMOUNT</span>
-                            <span id="bill-total" class="text-emerald-400"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-8">
-                        <p class="text-emerald-400 font-medium mb-4">Choose payment method</p>
-                        <div class="grid grid-cols-3 gap-4">
-                            <button onclick="payWith('momo')" class="bg-zinc-800 hover:bg-emerald-500 hover:text-black rounded-3xl py-6 flex flex-col items-center">
-                                <i class="fa-solid fa-mobile-screen-button text-4xl mb-2"></i>
-                                <span class="text-sm font-medium">MTN MoMo</span>
-                            </button>
-                            <button onclick="payWith('airtel')" class="bg-zinc-800 hover:bg-emerald-500 hover:text-black rounded-3xl py-6 flex flex-col items-center">
-                                <i class="fa-solid fa-mobile-screen-button text-4xl mb-2"></i>
-                                <span class="text-sm font-medium">Airtel Money</span>
-                            </button>
-                            <button onclick="payWith('card')" class="bg-zinc-800 hover:bg-emerald-500 hover:text-black rounded-3xl py-6 flex flex-col items-center">
-                                <i class="fa-solid fa-credit-card text-4xl mb-2"></i>
-                                <span class="text-sm font-medium">Card</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="p-8 border-t border-white/10 text-center text-emerald-400 text-sm font-medium flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check-circle"></i>
-                    Payment is 100% secure • Instant confirmation
-                </div>
-            </div>
-        </div>
-
-        <!-- ADD PRODUCT MODAL (Seller) -->
-        <div onclick="if(event.target.id === 'add-modal') hideAddModal()" 
-             id="add-modal" class="hidden fixed inset-0 bg-black/70 z-[12000] flex items-center justify-center">
-            <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl w-full max-w-md mx-4 p-8">
-                <h3 class="text-3xl font-semibold mb-8">Add new product to sell</h3>
-                
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-xs font-medium mb-2 text-zinc-400">PRODUCT NAME</label>
-                        <input id="product-name" type="text" 
-                               class="w-full bg-black border border-white/20 rounded-3xl px-6 py-5 outline-none text-white">
-                    </div>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs font-medium mb-2 text-zinc-400">PRICE (RWF)</label>
-                            <input id="product-price" type="number" value="15000"
-                                   class="w-full bg-black border border-white/20 rounded-3xl px-6 py-5 outline-none text-white">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium mb-2 text-zinc-400">CATEGORY</label>
-                            <select id="product-category" class="w-full bg-black border border-white/20 rounded-3xl px-6 py-5 outline-none text-white">
-                                <option>Electronics</option>
-                                <option>Fashion</option>
-                                <option>Home &amp; Kitchen</option>
-                                <option>Food</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <button onclick="addProductToStore()" 
-                            class="w-full bg-emerald-500 text-black font-bold py-6 rounded-3xl">ADD TO MY STORE</button>
-                </div>
-            </div>
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200]">
+        <div class="bg-white text-black p-8 rounded-3xl max-w-xs w-full mx-4 text-center">
+            <h3 class="text-xl font-bold mb-6">Scan this QR with your phone</h3>
+            <div id="qrcode" class="mx-auto"></div>
+            <p class="text-sm text-zinc-600 mt-6">Customer opens camera → scans → sees bill and pays</p>
+            <button onclick="hideQR()" class="mt-8 w-full py-4 border border-black rounded-3xl">Close</button>
         </div>
     </div>
 
     <script>
-        // Tailwind script already loaded
-        function initializeTailwind() {
-            // Already using CDN, so no need
-        }
-
-        // Demo products (buyer sees these)
-        let allProducts = [
-            { id: 1, name: "Wireless Earbuds Pro", price: 45000, category: "Electronics", emoji: "🎧" },
-            { id: 2, name: "Kigali Hoodie", price: 28000, category: "Fashion", emoji: "👕" },
-            { id: 3, name: "Smart Watch Ultra", price: 125000, category: "Electronics", emoji: "⌚" },
-            { id: 4, name: "Fresh Avocados (5pcs)", price: 8000, category: "Food", emoji: "🥑" },
-            { id: 5, name: "Leather Wallet", price: 22000, category: "Fashion", emoji: "👛" },
-            { id: 6, name: "Portable Power Bank", price: 35000, category: "Electronics", emoji: "🔋" },
-            { id: 7, name: "Ceramic Coffee Mug Set", price: 15000, category: "Home & Kitchen", emoji: "☕" },
-            { id: 8, name: "Running Sneakers", price: 65000, category: "Fashion", emoji: "👟" }
-        ]
-
-        // Seller's own products (starts empty)
-        let sellerProducts = []
-
-        // Cart
-        let cart = []
-
-        // Current mode
-        let currentMode = 'buyer'
-
-        // Fake order data for QR
-        let currentOrder = null
-        const paymentReceiver = 'XX market'
+        let cart = [];
+        const products = [
+            {id:1, name:"Wireless Earbuds Pro", price:45000, emoji:"🎧"},
+            {id:2, name:"Kigali Hoodie", price:28000, emoji:"👕"},
+            {id:3, name:"Smart Watch Ultra", price:125000, emoji:"⌚"},
+            {id:4, name:"Fresh Avocados (5)", price:8000, emoji:"🥑"},
+            {id:5, name:"Leather Wallet", price:22000, emoji:"👛"},
+            {id:6, name:"Portable Power Bank", price:35000, emoji:"🔋"},
+            {id:7, name:"Ceramic Coffee Mug", price:15000, emoji:"☕"}
+        ];
 
         function renderProducts() {
-            const grid = document.getElementById('products-grid')
-            grid.innerHTML = ''
-            
-            allProducts.forEach(product => {
-                const card = document.createElement('div')
-                card.className = `bg-zinc-900 rounded-3xl p-6 card-hover cursor-pointer`
+            const grid = document.getElementById('products');
+            grid.innerHTML = '';
+            products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "bg-zinc-900 rounded-3xl p-5 product-card cursor-pointer";
                 card.innerHTML = `
-                    <div class="text-7xl mb-6">${product.emoji}</div>
-                    <div class="font-semibold text-xl">${product.name}</div>
-                    <div class="text-emerald-400 text-3xl font-medium mt-1">RWF ${product.price.toLocaleString()}</div>
-                    <div class="text-xs text-zinc-500 mt-4 flex justify-between items-center">
-                        <span>${product.category}</span>
-                        <button onclick="addToCart(${product.id}); event.stopImmediatePropagation()" 
-                                class="bg-emerald-500 hover:bg-white hover:text-black text-black text-sm font-medium px-5 h-8 rounded-3xl">
-                            ADD
-                        </button>
-                    </div>
-                `
-                card.onclick = () => addToCart(product.id)
-                grid.appendChild(card)
-            })
-            
-            // If empty, show message
-            if (allProducts.length === 0) {
-                grid.innerHTML = `<p class="text-zinc-400 col-span-full text-center py-12">No products yet...</p>`
-            }
-        }
-
-        function renderSellerProducts() {
-            const grid = document.getElementById('seller-products')
-            grid.innerHTML = ''
-            
-            if (sellerProducts.length === 0) {
-                grid.innerHTML = `
-                <div class="col-span-full bg-zinc-900/50 rounded-3xl p-12 text-center">
-                    <p class="text-7xl mb-6">🏪</p>
-                    <p class="text-xl font-medium">Your store is empty</p>
-                    <p class="text-zinc-400 mt-2">Add your first product and start selling instantly</p>
-                    <button onclick="showAddProductModal()" class="mt-8 mx-auto bg-white text-black px-8 h-12 rounded-3xl font-medium flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> ADD FIRST PRODUCT
-                    </button>
-                </div>`
-                return
-            }
-            
-            sellerProducts.forEach((product, index) => {
-                const card = document.createElement('div')
-                card.className = `bg-zinc-900 rounded-3xl p-6 card-hover`
-                card.innerHTML = `
-                    <div class="text-6xl mb-6">${product.emoji}</div>
-                    <div class="font-semibold">${product.name}</div>
-                    <div class="text-emerald-400 text-3xl font-medium">RWF ${product.price.toLocaleString()}</div>
-                    <div class="text-xs flex justify-between mt-8">
-                        <span class="text-zinc-400">${product.category}</span>
-                        <button onclick="deleteSellerProduct(${index}); event.stopImmediatePropagation()" class="text-red-400 hover:text-red-500">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                `
-                grid.appendChild(card)
-            })
+                    <div class="text-6xl mb-4">${p.emoji}</div>
+                    <div class="font-semibold">${p.name}</div>
+                    <div class="text-emerald-400 text-3xl font-bold mt-1">RWF ${p.price.toLocaleString()}</div>
+                    <button onclick="addToCart(${p.id}); event.stopImmediatePropagation()" 
+                            class="mt-6 w-full bg-emerald-500 text-black py-3 rounded-2xl font-medium">ADD TO CART</button>
+                `;
+                card.onclick = () => addToCart(p.id);
+                grid.appendChild(card);
+            });
         }
 
         function addToCart(id) {
-            const product = allProducts.find(p => p.id === id)
-            if (!product) return
-            
-            const existing = cart.find(item => item.id === id)
-            if (existing) {
-                existing.quantity = (existing.quantity || 1) + 1
-            } else {
-                cart.push({ ...product, quantity: 1 })
-            }
-            
-            updateCartCount()
-            showToast(`${product.name} added to cart!`)
+            const product = products.find(p => p.id === id);
+            cart.push(product);
+            document.getElementById('cart-count').textContent = cart.length;
         }
 
-        function updateCartCount() {
-            let count = 0
-            cart.forEach(item => count += item.quantity || 1)
-            document.getElementById('cart-count').textContent = count
-        }
-
-        function toggleCart() {
-            const modal = document.getElementById('cart-modal')
-            const container = document.getElementById('cart-items')
-            container.innerHTML = ''
-            
-            if (cart.length === 0) {
-                container.innerHTML = `<div class="text-center py-16 text-zinc-400">Your cart is empty.<br>Start shopping!</div>`
-            } else {
-                cart.forEach((item, index) => {
-                    const div = document.createElement('div')
-                    div.className = 'flex gap-4 items-center'
-                    div.innerHTML = `
-                        <div class="text-5xl flex-shrink-0">${item.emoji}</div>
-                        <div class="flex-1">
-                            <p class="font-medium">${item.name}</p>
-                            <p class="text-emerald-400">RWF ${item.price.toLocaleString()}</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button onclick="changeQuantity(${index}, -1)" class="w-8 h-8 flex items-center justify-center text-xl border border-white/30 rounded-2xl">-</button>
-                            <span class="font-mono w-6 text-center">${item.quantity || 1}</span>
-                            <button onclick="changeQuantity(${index}, 1)" class="w-8 h-8 flex items-center justify-center text-xl border border-white/30 rounded-2xl">+</button>
-                        </div>
-                        <button onclick="removeFromCart(${index})" class="text-zinc-400 text-xl ml-2">×</button>
-                    `
-                    container.appendChild(div)
-                })
-            }
-            
-            // Total
-            const total = cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0)
-            document.getElementById('cart-total').textContent = `RWF ${total.toLocaleString()}`
-            
-            modal.classList.remove('hidden')
-            modal.classList.add('flex')
+        function showCart() {
+            if (cart.length === 0) return alert("Cart is empty!");
+            let html = '';
+            let total = 0;
+            cart.forEach(item => {
+                total += item.price;
+                html += `<div class="flex justify-between bg-zinc-800 p-4 rounded-2xl">
+                            <span>${item.emoji} ${item.name}</span>
+                            <span class="font-bold">RWF ${item.price.toLocaleString()}</span>
+                         </div>`;
+            });
+            document.getElementById('cart-items').innerHTML = html;
+            document.getElementById('cart-total').textContent = `RWF ${total.toLocaleString()}`;
+            document.getElementById('cart-modal').classList.remove('hidden');
         }
 
         function hideCart() {
-            const modal = document.getElementById('cart-modal')
-            modal.classList.add('hidden')
-            modal.classList.remove('flex')
+            document.getElementById('cart-modal').classList.add('hidden');
         }
 
-        function changeQuantity(index, delta) {
-            if (!cart[index]) return
-            let qty = (cart[index].quantity || 1) + delta
-            if (qty < 1) qty = 1
-            cart[index].quantity = qty
-            toggleCart() // refresh
-        }
-
-        function removeFromCart(index) {
-            cart.splice(index, 1)
-            toggleCart()
-            updateCartCount()
-        }
-
-        function checkout() {
-            hideCart()
-            buildCurrentOrder()
-            showQRModal()
-        }
-
-        function buildCurrentOrder() {
-            const total = cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0)
-
-            currentOrder = {
-                id: 'Q' + Math.floor(100000 + Math.random() * 900000),
-                date: new Date().toLocaleDateString('en-RW'),
-                receiver: paymentReceiver,
-                amount: total,
-                currency: 'RWF'
-            }
-        }
-
-        function showQRModal() {
-            const modal = document.getElementById('qr-modal')
-            const container = document.getElementById('qr-code-container')
-            container.innerHTML = ''
-            document.getElementById('qr-receiver').textContent = currentOrder.receiver || paymentReceiver
-            document.getElementById('qr-pay-amount').textContent = `${currentOrder.currency || 'RWF'} ${(currentOrder.amount || 0).toLocaleString()}`
+        function generateQR() {
+            hideCart();
+            const total = cart.reduce((a, b) => a + b.price, 0);
+            const qrDiv = document.getElementById('qrcode');
+            qrDiv.innerHTML = '';
             
-            const paymentPayload = {
-                type: 'quickqr-payment',
-                invoiceId: currentOrder.id,
-                receiver: currentOrder.receiver || paymentReceiver,
-                currency: currentOrder.currency || 'RWF',
-                amount: currentOrder.amount || 0
-            }
-
-            // Generate QR code as a payment app link
-            const qrData = createPaymentLink(paymentPayload)
+            new QRCode(qrDiv, {
+                text: JSON.stringify({total: total, items: cart}),
+                width: 260,
+                height: 260
+            });
             
-            // Create QR
-            const qrDiv = document.createElement('div')
-            qrDiv.id = 'qrcode'
-            container.appendChild(qrDiv)
-
-            try {
-                new QRCode(qrDiv, {
-                    text: qrData,
-                    width: 280,
-                    height: 280,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.M
-                })
-            } catch (error) {
-                container.innerHTML = `<div class="text-center text-sm text-red-500">QR could not be generated.</div>`
-                showToast('QR could not be generated', 'error')
-                return
-            }
-            
-            modal.classList.remove('hidden')
-            modal.classList.add('flex')
+            document.getElementById('qr-modal').classList.remove('hidden');
         }
 
-        function hideQRModal() {
-            const modal = document.getElementById('qr-modal')
-            modal.classList.add('hidden')
-            modal.classList.remove('flex')
-            
-            // Clear cart after successful checkout simulation
-            cart = []
-            updateCartCount()
-            
-            // Show success toast
-            showToast('QR generated! Customer can now scan and pay.', 'success')
-            
-            currentOrder = null
+        function hideQR() {
+            document.getElementById('qr-modal').classList.add('hidden');
+            cart = [];
+            document.getElementById('cart-count').textContent = '0';
         }
 
-        // QR Scanner
-        let html5QrCode = null
-
-        function showScanner() {
-            const modal = document.getElementById('scanner-modal')
-            modal.classList.remove('hidden')
-            modal.classList.add('flex')
-            
-            // Initialize scanner
-            setTimeout(() => {
-                html5QrCode = new Html5Qrcode("reader")
-                
-                const config = { fps: 10, qrbox: { width: 250, height: 250 } }
-                
-                html5QrCode.start(
-                    { facingMode: "environment" },
-                    config,
-                    (decodedText) => {
-                        // Successfully scanned
-                        html5QrCode.stop().then(() => {
-                            hideScanner()
-                            processScannedBill(decodedText)
-                        })
-                    },
-                    (error) => {
-                        // Ignore errors while scanning
-                    }
-                ).catch(err => console.log(err))
-            }, 300)
+        function switchTab(n) {
+            // Simple for now - only Buy mode is active
         }
 
-        function hideScanner() {
-            const modal = document.getElementById('scanner-modal')
-            modal.classList.add('hidden')
-            modal.classList.remove('flex')
-            
-            if (html5QrCode) {
-                html5QrCode.stop().catch(() => {})
-                html5QrCode = null
-            }
+        function startScanner() {
+            alert("📱 Use your phone camera to scan the QR code shown on the seller's screen.");
         }
 
-        function processScannedBill(qrData) {
-            try {
-                const order = parsePaymentPayload(qrData)
-                
-                // Show bill modal
-                document.getElementById('bill-id').textContent = order.invoiceId || order.id
-                document.getElementById('bill-receiver').textContent = `Pay to ${order.receiver || paymentReceiver}`
-                document.getElementById('bill-amount-receiver').textContent = order.receiver || paymentReceiver
-                document.getElementById('bill-total').textContent = `RWF ${(order.amount || 0).toLocaleString()}`
-                
-                const billModal = document.getElementById('bill-modal')
-                billModal.classList.remove('hidden')
-                billModal.classList.add('flex')
-                
-            } catch(e) {
-                showToast('Invalid QR code!', 'error')
-            }
-        }
-
-        function hideBill() {
-            const modal = document.getElementById('bill-modal')
-            modal.classList.add('hidden')
-            modal.classList.remove('flex')
-        }
-
-        function createPaymentLink(paymentPayload) {
-            const baseUrl = window.location.href.split('#')[0]
-            const receiver = encodeURIComponent(paymentPayload.receiver || paymentReceiver)
-            const currency = encodeURIComponent(paymentPayload.currency || 'RWF')
-            const invoiceId = encodeURIComponent(paymentPayload.invoiceId || '')
-            const amount = Number(paymentPayload.amount || 0)
-            return `${baseUrl}#pay=1&i=${invoiceId}&a=${amount}&r=${receiver}&c=${currency}`
-        }
-
-        function parsePaymentPayload(rawValue) {
-            if (rawValue.startsWith('http')) {
-                const parsedUrl = new URL(rawValue)
-                const hashValue = parsedUrl.hash.replace(/^#/, '')
-                const hashParams = new URLSearchParams(hashValue)
-
-                if (hashParams.get('pay') === '1') {
-                    return {
-                        type: 'quickqr-payment',
-                        invoiceId: hashParams.get('i') || '',
-                        amount: Number(hashParams.get('a') || 0),
-                        receiver: hashParams.get('r') || paymentReceiver,
-                        currency: hashParams.get('c') || 'RWF'
-                    }
-                }
-
-                const payToken = hashParams.get('pay')
-                if (!payToken) throw new Error('Missing payment token')
-                return JSON.parse(decodeURIComponent(escape(atob(payToken))))
-            }
-
-            return JSON.parse(rawValue)
-        }
-
-        function openPaymentApp(order) {
-            document.getElementById('payment-app-receiver').textContent = order.receiver || paymentReceiver
-            document.getElementById('payment-app-amount').textContent = `${order.currency || 'RWF'} ${(order.amount || 0).toLocaleString()}`
-            document.getElementById('payment-app-invoice').textContent = `Invoice #${order.invoiceId || order.id || ''}`
-            document.getElementById('payment-app').classList.remove('hidden')
-        }
-
-        function closePaymentApp() {
-            document.getElementById('payment-app').classList.add('hidden')
-            if (window.location.hash.startsWith('#pay=')) {
-                history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
-            }
-        }
-
-        function restorePaymentAppFromLink() {
-            if (!window.location.hash.startsWith('#pay=')) return
-
-            try {
-                const params = new URLSearchParams(window.location.hash.slice(1))
-                let order = null
-
-                if (params.get('pay') === '1') {
-                    order = {
-                        type: 'quickqr-payment',
-                        invoiceId: params.get('i') || '',
-                        amount: Number(params.get('a') || 0),
-                        receiver: params.get('r') || paymentReceiver,
-                        currency: params.get('c') || 'RWF'
-                    }
-                } else {
-                    const payToken = params.get('pay')
-                    if (!payToken) return
-                    order = JSON.parse(decodeURIComponent(escape(atob(payToken))))
-                }
-
-                openPaymentApp(order)
-            } catch (error) {
-                showToast('Invalid payment link', 'error')
-            }
-        }
-
-        function payWith(method) {
-            hideBill()
-            closePaymentApp()
-            setTimeout(() => {
-                showToast(`✅ Payment successful via ${method.toUpperCase()}! 🎉`, 'success')
-                currentOrder = null
-            }, 800)
-        }
-
-        function switchMode(mode) {
-            currentMode = mode
-            
-            // Update tabs
-            document.getElementById('buyer-tab').classList.toggle('active-mode', mode === 'buyer')
-            document.getElementById('seller-tab').classList.toggle('active-mode', mode === 'seller')
-            
-            document.getElementById('buyer-mode').classList.toggle('hidden', mode !== 'buyer')
-            document.getElementById('seller-mode').classList.toggle('hidden', mode === 'buyer')
-            
-            if (mode === 'seller') renderSellerProducts()
-        }
-
-        function showAddProductModal() {
-            document.getElementById('add-modal').classList.remove('hidden')
-            document.getElementById('add-modal').classList.add('flex')
-        }
-
-        function hideAddModal() {
-            const modal = document.getElementById('add-modal')
-            modal.classList.add('hidden')
-            modal.classList.remove('flex')
-        }
-
-        function addProductToStore() {
-            const name = document.getElementById('product-name').value || 'Unnamed Product'
-            const price = parseInt(document.getElementById('product-price').value) || 10000
-            const category = document.getElementById('product-category').value
-            const emojiMap = { Electronics: '📱', Fashion: '👕', 'Home & Kitchen': '🍳', Food: '🍎' }
-            
-            sellerProducts.push({
-                id: Date.now(),
-                name: name,
-                price: price,
-                category: category,
-                emoji: emojiMap[category] || '📦'
-            })
-            
-            hideAddModal()
-            renderSellerProducts()
-            showToast('Product added to your store!', 'success')
-        }
-
-        function deleteSellerProduct(index) {
-            sellerProducts.splice(index, 1)
-            renderSellerProducts()
-        }
-
-        function toggleProfile() {
-            showToast("👋 Hi Sangwa! You're logged in as a verified seller & buyer in Kigali")
-        }
-
-        function searchProducts() {
-            const term = document.getElementById('search-input').value.toLowerCase().trim()
-            if (!term) {
-                renderProducts()
-                return
-            }
-            
-            const filtered = allProducts.filter(p => 
-                p.name.toLowerCase().includes(term)
-            )
-            
-            const grid = document.getElementById('products-grid')
-            grid.innerHTML = ''
-            
-            if (filtered.length === 0) {
-                grid.innerHTML = `<p class="col-span-full text-center py-20 text-zinc-400">No results for "${term}"</p>`
-                return
-            }
-            
-            filtered.forEach(product => {
-                // Same card code as renderProducts
-                const card = document.createElement('div')
-                card.className = `bg-zinc-900 rounded-3xl p-6 card-hover cursor-pointer`
-                card.innerHTML = `
-                    <div class="text-7xl mb-6">${product.emoji}</div>
-                    <div class="font-semibold text-xl">${product.name}</div>
-                    <div class="text-emerald-400 text-3xl font-medium mt-1">RWF ${product.price.toLocaleString()}</div>
-                    <div class="text-xs text-zinc-500 mt-4 flex justify-between items-center">
-                        <span>${product.category}</span>
-                        <button onclick="addToCart(${product.id}); event.stopImmediatePropagation()" 
-                                class="bg-emerald-500 hover:bg-white hover:text-black text-black text-sm font-medium px-5 h-8 rounded-3xl">
-                            ADD
-                        </button>
-                    </div>
-                `
-                card.onclick = () => addToCart(product.id)
-                grid.appendChild(card)
-            })
-        }
-
-        function showToast(message, type = 'default') {
-            const toast = document.createElement('div')
-            toast.style.cssText = `position:fixed; bottom:20px; left:20px; background:${type==='success'?'#10b981':'#27272a'}; color:${type==='success'?'#fff':'#fff'}; padding:16px 24px; border-radius:9999px; box-shadow:0 10px 15px -3px rgb(16 185 129); display:flex; align-items:center; gap:12px; z-index:99999;`
-            toast.innerHTML = `
-                ${type==='success' ? '✅' : '📱'} 
-                <span class="font-medium">${message}</span>
-            `
-            document.body.appendChild(toast)
-            
-            setTimeout(() => {
-                toast.style.transition = 'all 0.3s ease'
-                toast.style.transform = 'translateY(100px)'
-                toast.style.opacity = '0'
-                setTimeout(() => toast.remove(), 300)
-            }, 2800)
-        }
-
-        // Initialize the entire app
-        function initApp() {
-            renderProducts()
-            renderSellerProducts()
-            restorePaymentAppFromLink()
-            window.addEventListener('hashchange', restorePaymentAppFromLink)
-            
-            // Demo: Show scanner button in navbar? (optional)
-            console.log('%c✅ QuickQR Commerce App ready! Built with TypeScript-ready structure (you can convert to real Next.js easily).', 'color:#00ff88; font-size:13px')
-            console.log('Scan the generated QR with your phone camera or use the scanner to test the full flow.')
-            
-            // Bonus: Make it feel like a real mobile app on desktop too
-            console.log('👉 Try switching between BUY / SELL modes. Perfect modern style for Rwanda market!')
-        }
-
-        // Start the app
-        window.onload = initApp
+        // Initialize
+        renderProducts();
     </script>
 </body>
 </html>
